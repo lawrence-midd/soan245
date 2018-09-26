@@ -1,0 +1,168 @@
+---
+title: "SOAN 245, Week 3 Workshop, Billion Prices Project"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Getting Started
+
+To begin, copy all the text on this screen. Then log in to https://rstudio.middlebury.edu. In the "File" menu select "New File" then "R Markdown". Add a title like "SOAN 245 Workshop Week 3", include your name in the "Author" box, and click Ok. A default markdown file will open. Delete all the text in the default file and paste in the text you copied to your clipboard. Make sure that "R Markdown" is selected in the file type drop down menu in the bottom right corner of this pane. Save the file (in the R menu, not your browser menu!) in your "Home" folder on the R Studio server. 
+
+***Once the R Markdown file is saved, you can access it through the server in the future. You do not have to copy and paste it from the web link each time. The first place to look for it is in the "File" menu (in the R menu, not your browser menu!) under "Recent Files".***
+
+
+## Once Your File Is Saved
+
+Now let's load the packages and the data:
+
+```{r, message = FALSE, warning = FALSE, error = FALSE}
+#install.packages("RCurl")
+library(RCurl) #We need this to read the data
+library(tidyverse) #We need this to clean up the data and create graphics
+workshop3_raw_data <- getURL("https://raw.githubusercontent.com/lawrence-midd/soan245/master/bpp.csv")
+bpp <- read.csv(text = workshop3_raw_data)
+```
+
+## Loading Data and Packages
+The data we are using come from the Billion Prices Project. In the transparent spirit of open science, they make all their data available for download at: http://www.thebillionpricesproject.com/datasets/. Today we are using data from the "Online-Offline Price Comparison" paper.
+
+You know the dataset loaded correctly if it appears in R Studio's top right pane. To see a list of the variables in our dataset, click the white arrow in the blue circle. To see the data as a table, click the spreadsheet icon. 
+
+
+## Data Cleaning
+
+Remember that big data can be messy, especially when scraped from the web. We need to clean up a couple things in the dataset before using it. (Note: I cleaned up some of the really messy stuff before making the data available to you, so this looks a little different from data you could download directly from the BPP website.)
+
+Here's the first clean up issue. There are prices in the dataset that are for products that are on sale and prices that are for products that are not on sale. Prices that are on sale are coded with a 1 for the variable `sale_online`, and prices that are not on sale are coded with a 0 for that variable. Should we keep the prices that are on sale?
+
+To drop all the prices that are on sale, we filter our dataset to only include observations for prices that are *not* on sale:
+
+```{r}
+bpp <- filter(bpp, sale_online==0)
+```
+
+How many observations do we have now?
+
+We also want to make sure we are only looking at recent prices. Let's only keep the prices that have been scraped within the previous 7 days. Using the `filter` function again as we did in the chunk above, how might we only include observations for prices scraped within the previous 7 days?
+
+### REPLACE THIS LINE WITH YOUR CODE ###
+
+```{r}
+bpp <- filter(bpp, datediff<=7)
+```
+
+
+## Finding Price Differences
+
+Now it's time to calculate the differences betweeen the price for a product if purchased from Amazon and the price for the same product if purchased online from the website of one of the following retailers: Best Buy, CVS, Walmart, Target, Lowe's, Macy's, Office Max, or Staples. We are going to use the log of the prices so we can calculate the percentage differences between the Amazon and online prices. The new variable with the percentage difference will be called `price_difference_amon`.
+
+```{r}
+bpp <- mutate(bpp, price_difference_amon = log(price_amazon) - log(price_online))
+```
+
+
+Techical detour: If the absolute value of the difference is less than 1%, we should recode it as 0:
+```{r}
+#Let's find the absolute value of the difference first:
+  bpp <- mutate(bpp, abs_price_difference_amon = abs(price_difference_amon))
+
+#And then recode values as appropriate:
+bpp <- mutate(bpp, abs_price_difference_amon = ifelse(abs_price_difference_amon<0.01,0,abs_price_difference_amon))
+```
+
+Let's take a first look at the distribution of these price differences:
+
+```{r}
+boxplot(bpp$price_difference_amon)
+```
+
+Some of these seem way too large to be true, which is a sign that there might be some errors in the data. We'll only keep the cases where the difference between the Amazon price and the online price is .5 or less
+
+```{r}
+bpp <- filter(bpp, abs_price_difference_amon<=.5)
+```
+
+Now let's get percentages to make some of our analyses easier to interpret:
+
+```{r}
+bpp <- mutate(bpp, price_difference_amon_pc=price_difference_amon*100)
+```
+
+
+## Analysis
+
+Let's compare the price differences! We'll start by looking at a summary:
+
+```{r}
+summary(bpp$price_difference_amon_pc)
+```
+
+What is the difference between the negative and positive values?
+
+The summary is helpful, but a figure showing the distribution might be even more helpful. We are going to make a histogram:
+
+```{r, message = FALSE}
+diff_plot <- ggplot(bpp, aes(x = price_difference_amon_pc))
+diff_plot + geom_histogram()
+```
+
+The histogram above shows the number of prices in the y-axis and the percent difference in the x-axis.
+
+It is probably preferable to switch the y-axis to the percent of cases rather than the count:
+
+```{r, message = FALSE}
+diff_plot_pc <- ggplot(bpp, aes(x = price_difference_amon_pc, y=..count../sum(..count..)))
+diff_plot_pc + geom_histogram()
+```
+
+Finally let's add a title and some better axis labels to make our analysis cleaner:
+  
+```{r, message = FALSE}
+diff_plot_pc_title <- ggplot(bpp, aes(x = price_difference_amon_pc, y=..count../sum(..count..)))
+diff_plot_pc + geom_histogram() + labs(x = "Price difference (percent)", y = "Percent", title = "Price Differences With Amazon.com (U.S. Only)")
+```
+
+How does this histogram compare to Figure 2 (page 298) of Cavallo's 2017 paper?
+
+
+## Price Differences by Product Type
+
+The dataset groups products into four types: Electronics, Home and Appliances, Office Products, Pharmacy and Health, or Mix (meaning a product falls into one or more of the other categories). How would you expect the distribution of price differences to vary by product type?
+
+We can use the `facet_grid()` function to have a separate plot for each value of the `category` variable:
+
+```{r, message = FALSE}
+diff_plot_pc_title <- ggplot(bpp, aes(x = price_difference_amon_pc, y=..count../sum(..count..)))
+diff_plot_pc + geom_histogram() + labs(x = "Price difference (percent)", y = "Percent", title = "Price Differences With Amazon.com (U.S. Only), By Product Type") + facet_grid(.~ category)
+```
+
+
+## Table of Differences
+
+The histograms are great for giving us a general sense of the distribution. To get some more specific details about how prices compare, we can make a table.
+
+Start by cleaning up some of the data. In the code chunk below, we'll recode all price differences that have an absolute value of 1% or less as being identical.
+
+```{r}
+bpp <- mutate(bpp, 
+                         price_difference_amon_pc = ifelse(abs(price_difference_amon_pc)<=1,0,price_difference_amon_pc))
+```
+
+Now let's group the prices into three groups based on whether the prices are identical, Amazon is higher, or Amazon is lower:
+
+```{r}
+bpp <- bpp %>% 
+     mutate(difference = ifelse(price_difference_amon_pc==0,"Identical",
+                                ifelse(price_difference_amon_pc>0, "Higher Amazon", "Lower Amazon"))) %>%
+     mutate(difference = factor(difference,
+                                levels = c("Identical", "Higher Amazon", "Lower Amazon")))
+```
+
+And finally let's make a proportion table showing the differences:
+  
+```{r}
+round(prop.table(table(bpp$difference)),3)
+```
+
+These proportions very closely reproduce the first row of Table 8 (page 299) in the Cavallo (2017) paper.
