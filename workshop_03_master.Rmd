@@ -3,6 +3,8 @@ title: "SOAN 245, Week 3 Workshop, Billion Prices Project"
 output: html_document
 ---
 
+This should be the version in the 2018 branch. Hopefully.
+
 ## Getting Started
 
 To begin, copy all the text on this screen. Then log in to https://rstudio.middlebury.edu. In the "File" menu select "New File" then "R Markdown". Add a title like "SOAN 245 Workshop Week 3", include your name in the "Author" box, and click Ok. A default markdown file will open. Delete all the text in the default file and paste in the text you copied to your clipboard. Make sure that "R Markdown" is selected in the file type drop down menu in the bottom right corner of this pane. Save the file (in the R menu, not your browser menu!) in your "Home" folder on the R Studio server.
