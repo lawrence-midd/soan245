@@ -3,7 +3,7 @@ title: "SOAN 245, Week 3 Workshop, Billion Prices Project"
 output: html_document
 ---
 
-Will this update at some point?
+Hopefully this will update now too.
 
 ## Getting Started
 
