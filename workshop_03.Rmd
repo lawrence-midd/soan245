@@ -118,7 +118,7 @@ summary(bpp$price_difference_amon_pc)
 
 What is the difference between the negative and positive values?
 
-The summary is helpful, but a figure showing the distribution might be even more helpful. We are going to make a histogram. The first step is to lay out the background for our figure. We create a new object called `diff_plot` (or whatever you want to call it) which will use the `ggplot` package to take the `bpp` dataset and populate the x-axis with the values of the `price_difference_amon_pc` variable.
+The summary is helpful, but a figure showing the distribution might be even more helpful. We are going to make a histogram. The first step is to lay out the background for our figure. We will call our plot `diff_plot` which will use the `ggplot` package to take the `bpp` dataset and populate the x-axis with the values of the `price_difference_amon_pc` variable.
 
 ```{r, message = FALSE}
 diff_plot <- ggplot(bpp, aes(x = price_difference_amon_pc))
