@@ -1,8 +1,3 @@
----
-title: "SOAN 245, Week 3 Workshop, Billion Prices Project"
-output: html_document
----
-
 ## Getting Started
 
 To begin, copy all the text on this screen. Then log in to https://rstudio.middlebury.edu. In the "File" menu select "New File" then "R Markdown". Add a title like "SOAN 245 Workshop Week 3", include your name in the "Author" box, and click Ok. A default markdown file will open. Delete all the text in the default file below line 7 and paste in the text you copied to your clipboard. Make sure that "R Markdown" is selected in the file type drop down menu in the bottom right corner of this pane. Save the file (in the R menu, not your browser menu!) in your "Home" folder on the R Studio server. 
@@ -18,7 +13,7 @@ The data we are using come from the Billion Prices Project. In the transparent s
 Let's load the packages and the data. (Note: there may be some additional packages you have to install.)
 
 ```{r, message = FALSE, warning = FALSE, error = FALSE}
-#install.packages(c("bitops", "RCurl"))
+install.packages(c("bitops", "RCurl"))
 library(RCurl) #We need this to read the data
 library(dplyr) #We need this to clean up the data
 library(ggplot2) #We need this for graphics
@@ -50,20 +45,19 @@ We also want to make sure we are only looking at recent prices. Let's only keep 
 
 ### REPLACE THIS LINE WITH YOUR CODE ###
 
-```{r}
-bpp <- filter(bpp, datediff<=7)
-```
+
+
+
+
 
 How similar do you think the prices will be at brick and mortar stores (variable = `price_offline`) and on their own websites (`price_online`)? What are some tools we could use to compare them?
 
 ### REPLACE THIS LINE WITH YOUR CODE ###
 
-```{r}
-cor(bpp$price_offline, bpp$price_online)
-summary(bpp$price_offline)
-summary(bpp$price_online)
-plot(bpp$price_offline, bpp$price_online)
-```
+
+
+
+
 
 
 ## Finding Price Differences
@@ -110,9 +104,8 @@ Take a look at a boxplot of the price difference percentages:
 
 ### REPLACE THIS LINE WITH YOUR CODE ###
 
-```{r}
-boxplot(bpp$price_difference_amon_pc)
-```
+
+
 
 
 ## Analysis
