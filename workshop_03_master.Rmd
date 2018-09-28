@@ -54,7 +54,7 @@ We also want to make sure we are only looking at recent prices. Let's only keep 
 bpp <- filter(bpp, datediff<=7)
 ```
 
-How similar do you think the prices will be at brick and mortar stores (variable = `price_offline`) and on their own websites (`price_online`)? What are some tools we could use to compare them?
+How similar do you think the prices will be at the retailers' brick and mortar stores (variable = `price_offline`) and on their own websites (`price_online`)? What are some tools we could use to compare them?
 
 ### REPLACE THIS LINE WITH YOUR CODE ###
 
