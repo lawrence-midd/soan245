@@ -62,7 +62,7 @@ How similar do you think the prices will be at the retailers' brick and mortar s
 
 ## Finding Price Differences
 
-Now it's time to calculate the differences betweeen the price for a product if purchased from Amazon and the price for the same product if purchased from the retailer's own website. The function to create a new variable is called `mutate`. We are going to create a new variable called `price_difference_amon` that will take the values of the differences of the prices. We'll use the log of the prices so we can calculate the percentage differences.
+Now it's time to calculate the differences betweeen the price for a product if purchased from Amazon and the price for the same product if purchased from the retailer's own website. The function to create a new variable is called `mutate`. We are going to create a new variable called `price_difference_amon` that will take the values of the differences of the prices. We'll use the log of the prices so we can estimate the percentage differences.
 
 ```{r}
 bpp <- mutate(bpp, price_difference_amon = log(price_amazon) - log(price_online))
