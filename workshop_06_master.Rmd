@@ -1,0 +1,232 @@
+## SOAN 245 - Social Life in an Age of Big Data
+## Workshop Week 6
+## Twitter Analysis
+
+### 1. Introduction and Set Up
+
+Today we will explore some of the approaches available to big data researchers interested in analyzing social media messages. We will use a database of tweets from President Donald Trump collected at the [Trump Twitter Archive](http://trumptwitterarchive.com). The tweets we will look at are all tweets sent by `@realdonaldtrump` in the year between October 17, 2017 and October 18, 2018.
+
+To start, let's load the R packages we will need. Recall that in an R Markdown Notebook, you can click the green arrow in the chunk below to execute the commands.
+
+```{r load packages, error=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+We also need to load the dataset and clean up the `date` variable to make it more user-friendly:
+
+```{r load data, message = FALSE, warning = FALSE, error = FALSE}
+#trump_tweets <- read.csv("~/soan_245/workshop_week08/trump_tweets.csv")
+trump_tweets <- read.csv("/users/lawrence/desktop/trump_tweets.csv", stringsAsFactors = FALSE, fileEncoding="latin1")
+trump_tweets$date <- as.Date(trump_tweets$date, "%m/%d/%y")
+```
+
+
+### 2. Descriptive Data
+
+On what date did President Trump send the most tweets? First let's create a new data frame that includes the count of tweets by day:
+```{r finding counts by date}
+trump_tweets_date <- trump_tweets %>% group_by(date) %>% count()
+```
+
+Next, let's get a summary of the distribution of counts by looking at the range:
+```{r summary of counts by date}
+summary(trump_tweets_date$n)
+```
+
+So there was one day with 24 tweets! Is that many tweets unusual for him? To find out, let's plot the number of tweets by day over the last year:
+```{r plot of counts by date}
+trump_tweets_date <- as.data.frame(trump_tweets_date)
+plot <- ggplot(trump_tweets_date, aes(x = date, y = n)) + geom_col() + 
+     labs(title = "Number of Tweets by President Donald Trump by Day",
+          subtitle = "October 17, 2017 to October 18, 2018", 
+          x = "Date", y = "Number of Tweets") + ylim(c(0, 30))
+plot
+```
+
+That one day in late summer was pretty extraordinary. What day was it? Here we want to pull the value for the `date` variable for the day when the count of tweets equals 24:
+
+```{r date with most tweets}
+trump_tweets_date$date[trump_tweets_date$n==24]
+```
+
+Let's look at all the tweets from that day.
+
+```{r filter date with most tweets}
+most_tweets <- filter(trump_tweets, date=="2018-08-29")
+```
+
+
+Let's go back to the dataframe of all the tweets and find the date and text of the tweet with the most retweets. We'll use the same basic code to pull the values for the `created_date` and `text` variables for the observation with the max value for the `retweet_count` variable:
+```{r most replies}
+trump_tweets$date[trump_tweets$retweet_count==max(trump_tweets$retweet_count)]
+trump_tweets$text[trump_tweets$retweet_count==max(trump_tweets$retweet_count)]
+```
+
+Try to find the date and text of the tweet with the fewest favorites:
+```{r most favorites}
+trump_tweets$date[trump_tweets$favorite_count==min(trump_tweets$favorite_count)]
+trump_tweets$text[trump_tweets$favorite_count==min(trump_tweets$favorite_count)]
+```
+
+
+Now let's find the tweets that refer to "Fake News" and put them in a new data frame called `fakenews`. We do this by filtering the main dataset to only include observations where the phrase "Fake News" shows up in the `text` field:
+
+```{r filter tweets}
+fakenews <- filter(trump_tweets, grepl("Fake News",text, useBytes = TRUE, ignore.case = TRUE))
+```
+
+Which tweet about Fake News got the most retweets? Lots of ways to do this, but easiest is to find the "fakenews" data frame in the top right pane and click the spreadsheet icon at the right edge of that line. When the spreadheet view opens, you can sort by the "retweet_count" column (or any other column). If you hover over the tweet text, you should see the full tweet appear.
+
+What other phrases or keywords could be interesting to search?
+
+
+## 3. Sentiment Analysis
+
+Beyond descriptives, there are basic tools to get a sense of the content of tweets. We'll try a common method of counting up the positive and negative words in a message and using them to calculate a "sentiment score."
+
+To start, we need to load a file of positive words and a file of negative words:
+
+```{r load positive and negative words, message = FALSE, warning = FALSE, error = FALSE}
+#positive_words <- read.csv("~/soan_245/workshop_week08/positive_words.csv")
+#negative_words <- read.csv("~/soan_245/workshop_week08/negative_words.csv")
+
+#pos.words <- scan("~/soan_245/workshop_week08/positive_words.csv", what = "character")
+#neg.words <- scan("~/soan_245/workshop_week08/negative_words.csv", what = "character")
+
+
+positive_words <- read.csv("/users/lawrence/desktop/trump_tweets/positive_words.csv")
+negative_words <- read.csv("/users/lawrence/desktop/trump_tweets/negative_words.csv")
+
+pos.words <- scan("/users/lawrence/desktop/trump_tweets/positive_words.csv", 
+                  what = "character")
+neg.words <- scan("/users/lawrence/desktop/trump_tweets/negative_words.csv", 
+                  what = "character")
+
+```
+
+This next chunk sets up the function that will search all the tweets for individual words, count the positive and negative words, and calculate the scores. It's a lot of code...we won't go over it today but will need to run it.
+
+```{r set up search function}
+
+tweet <- as.vector(trump_tweets$text)
+score.sentiment = function(sentences, pos.words, neg.words, .progress='none')
+{
+ require(plyr)
+ require(stringr)
+ 
+scores = laply(sentences, function(tweet, pos.words, neg.words) {
+ 
+ # clean up sentences with R’s regex-driven global substitute, gsub():
+ tweet = gsub('[[:punct:]]', '', tweet)
+ tweet = gsub('[[:cntrl:]]', '', tweet)
+ tweet = gsub('\\d+', '', tweet)
+ # and convert to lower case:
+ tweet = tolower(tweet)
+ 
+ # split into words. str_split is in the stringr package
+ word.list = str_split(tweet, '\\s+')
+ # sometimes a list() is one level of hierarchy too much
+ words = unlist(word.list)
+ 
+ # compare our words to the dictionaries of positive & negative terms
+ pos.matches = match(words, pos.words)
+ neg.matches = match(words, neg.words)
+ 
+ # match() returns the position of the matched term or NA
+ # we just want a TRUE/FALSE:
+ pos.matches = !is.na(pos.matches)
+ neg.matches = !is.na(neg.matches)
+ 
+ # and conveniently enough, TRUE/FALSE will be treated as 1/0 by sum():
+ score = sum(pos.matches) - sum(neg.matches)
+ 
+ return(score)
+ }, pos.words, neg.words, .progress=.progress )
+ 
+ scores.df = data.frame(score=scores, text=tweet)
+ return(scores.df)
+}
+```
+
+
+Now let's create a data frame with the tweets and apply the function to that data frame. We'll also create a new data frame called `result` which will show the text of the tweet and the sentiment socre:
+```{r run the function and save the scores}
+##Put tweets in data frame
+tweets.df <- as.data.frame(tweet)
+
+##Apply sentiment function to the tweets
+result <- score.sentiment(tweets.df$tweet,pos.words,neg.words)
+```
+
+It's time to see the distribution of sentiment scores...
+```{r sentiment score summary}
+summary(result$score)
+```
+
+How would you interpret this distribution?
+
+We can also plot the distribution of sentiment scores...
+```{r histogram of scores}
+sentiment_plot1 <- ggplot(result, aes(x = score))
+sentiment_plot1 + geom_bar(fill = "Blue") + 
+     labs(title ="Distribution of Sentiment Scores of President Donald Trump's Tweets", 
+          subtitle = "October 17, 2017 to October 18, 2018", 
+          y = "Count of Tweets", x = "Sentiment Score")
+```
+
+
+
+
+
+## 4. Sentiment Analysis With Filtered Tweets
+
+Let's put all our tools together by examining the sentiment scores for subsets of tweets filtered by key words and phrases. In this first example, we will look at tweets that inlcude the phrase "Kavanaugh":
+
+```{r tweets filtered by text}
+
+trump_tweets_filter <- filter(trump_tweets, grepl("Fake News", text))
+
+tweet <- as.vector(trump_tweets_filter$text)
+
+##Put tweets in data frame
+tweets.df <- as.data.frame(tweet)
+
+##Apply sentiment function to the tweets
+result <- score.sentiment(tweets.df$tweet,pos.words,neg.words)
+
+##Summarize scores
+summary(result$score)
+
+##Histogram of scores
+sentiment_plot1 <- ggplot(result, aes(x = score))
+sentiment_plot1 + geom_bar(fill = "Blue") + 
+     labs(title ="Distribution of Sentiment Scores of President Donald Trump's Tweets Referencing `Fake News`", 
+          subtitle = "October 17, 2017 to October 18, 2018", 
+          y = "Count of tweets", x = "Sentiment Score")
+```
+
+
+Finally, let's look at the distribution of sentiment scores for the 100 most retweeted tweets:
+
+```{r tweets filtered by other variables}
+
+##This only keeps the 100 tweets with the most retweets
+trump_tweets_filter2 <- trump_tweets %>% arrange(desc(retweet_count)) %>% top_n(100, retweet_count)
+tweet <- as.vector(trump_tweets_filter$text)
+
+##Put tweets in data frame
+tweets.df <- as.data.frame(tweet)
+
+##Apply sentiment function to the tweets
+result <- score.sentiment(tweets.df$tweet,pos.words,neg.words)
+
+##Summarize scores
+summary(result$score)
+
+##Histogram of scores
+sentiment_plot1 <- ggplot(result, aes(x = score))
+sentiment_plot1 + geom_bar(fill = "Blue") + 
+     labs(title ="Distribution of Sentiment Scores of President Donald Trump's 100 Most Retweeted Tweets", 
+          subtitle = "October 17, 2017 to October 18, 2018", 
+          y = "Count of tweets", x = "Sentiment Score")
+```
