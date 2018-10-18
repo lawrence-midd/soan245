@@ -12,7 +12,7 @@ Today we will explore some of the approaches available to big data researchers i
 To start, let's load the R packages we will need. Recall that in an R Markdown Notebook, you can click the green arrow in the chunk below to execute the commands.
 
 ```{r load packages, error=FALSE, message=FALSE, warning=FALSE}
-install.packages("plyr", "tidyverse")
+install.packages(c("plyr", "tidyverse"))
 library(plyr)
 library(tidyverse)
 ```
