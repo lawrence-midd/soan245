@@ -1,6 +1,9 @@
-## SOAN 245 - Social Life in an Age of Big Data
-## Week 6 Workshop
-## Twitter Analysis
+## Getting Started
+
+Copy all the text on this screen. In R Studio's "File" menu, select "New File" then "R Markdown". Add a title like "SOAN 245 Workshop Week 6", include your name in the "Author" box, and click Ok. A default markdown file will open. Delete all the text in the default file below line 7 and paste in the text you copied to your clipboard. Make sure that "R Markdown" is selected in the file type drop down menu in the bottom right corner of this pane.
+
+## Once Your File Is Saved
+
 
 ### 1. Introduction and Set Up
 
@@ -9,7 +12,7 @@ Today we will explore some of the approaches available to big data researchers i
 To start, let's load the R packages we will need. Recall that in an R Markdown Notebook, you can click the green arrow in the chunk below to execute the commands.
 
 ```{r load packages, error=FALSE, message=FALSE, warning=FALSE}
-#install.packages("plyr", "tidyverse")
+install.packages("plyr", "tidyverse")
 library(plyr)
 library(tidyverse)
 ```
@@ -71,13 +74,9 @@ trump_tweets$date[trump_tweets$retweet_count==max(trump_tweets$retweet_count)]
 trump_tweets$text[trump_tweets$retweet_count==max(trump_tweets$retweet_count)]
 ```
 
-### REPLACE THIS LINE WITH YOUR CODE
-
 Try to find the date and text of the tweet with the lowest number of favorited tweets:
-```{r most favorites}
-trump_tweets$date[trump_tweets$favorite_count==min(trump_tweets$favorite_count)]
-trump_tweets$text[trump_tweets$favorite_count==min(trump_tweets$favorite_count)]
-```
+
+### REPLACE THIS LINE WITH YOUR CODE
 
 
 ### 4. Filtering By Content
@@ -92,34 +91,6 @@ Which tweet about Fake News got the most retweets?
 
 
 What other phrases or keywords could be interesting to search?
-
-Extracting Hashtags...
-
-```{r hashtags}
-extract.hashes = function(vec){
- 
-hash.pattern = "#[[:alpha:]]+"
-have.hash = grep(x = vec, pattern = hash.pattern)
- 
-hash.matches = gregexpr(pattern = hash.pattern,
-                        text = vec[have.hash])
-extracted.hash = regmatches(x = vec[have.hash], m = hash.matches)
- 
-df = data.frame(table(tolower(unlist(extracted.hash))))
-colnames(df) = c("tag","freq")
-df = df[order(df$freq,decreasing = TRUE),]
-return(df)
-}
- 
-tweet_hashtags = head(extract.hashes(trump_tweets$text),25)
-tweet_hashtags2 = transform(tweet_hashtags,tag = reorder(tag,freq))
-
-hashtag_plot = ggplot(tweet_hashtags2, aes(x = tag, y = freq)) + geom_col(fill = "blue")
-hashtag_plot + coord_flip() + 
-     labs(x = "", y = "",
-          title = "25 Most Common Hashtags in President Donald Trump's Tweets",
-          subtitle = "October 17, 2017 to October 18, 2018")
-```
 
 
 
