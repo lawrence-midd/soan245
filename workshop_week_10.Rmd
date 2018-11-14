@@ -95,7 +95,6 @@ Where does Middlebury's value fall in the overall distribution of mobility rates
 summary(colleges$mobility_rate)
 ```
 
-### REMOVE NEXT TWO CHUNKS FROM POSTED FILE ###
 
 
 
