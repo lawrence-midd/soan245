@@ -62,7 +62,7 @@ The next step is to know if the difference in height between the sample and the 
 t.test(profiles$height[profiles$sex=="f"], mu = 63.8)
 ```
 
-There are a few key pieces of information here that show us that females in our sample are *significantly* taller than females in the population. In formal language, these results suggest we can *reject the null hypothesis that the national mean and the sample mean could be the same*. 
+There are a few key pieces of information here that show us that females in our sample are *significantly* taller than females overall. In formal language, these results suggest we can *reject the null hypothesis that the mean in the population that our sample generalizes to is the same as the national mean.* 
 
 First, note the test statistic (t-value) of 73.742. That tells us the difference we observe is very far from what we know the population mean is. Once the t-stat is more extreme than +/- 1.96, we are comfortable rejecting the null hypothesis at the 95% confidence level.
 
